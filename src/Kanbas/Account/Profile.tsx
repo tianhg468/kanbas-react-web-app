@@ -3,32 +3,77 @@ import { Link } from "react-router-dom";
 export default function Profile() {
   return (
     <div id="wd-profile-screen">
-      <h3>Profile</h3>
-      <input id="wd-username" value="alice" placeholder="username" />
-      <br />
+      <h1>Profile</h1>
+      <input
+        id="wd-username"
+        defaultValue="alice"
+        placeholder="username"
+        className="form-control mb-2"
+        style={{ width: "300px" }}
+      />
+
       <input
         id="wd-password"
-        value="123"
+        defaultValue="123"
         placeholder="password"
         type="password"
+        className="form-control mb-2"
+        style={{ width: "300px" }}
       />
-      <br />
-      <input id="wd-firstname" value="Alice" placeholder="First Name" />
-      <br />
-      <input id="wd-lastname" value="Wonderland" placeholder="Last Name" />
-      <br />
-      <input id="wd-dob" value="2000-01-01" type="date" />
-      <br />
-      <input id="wd-email" value="alice@wonderland" type="email" />
-      <br />
-      <select id="wd-role">
-        <option value="USER">User</option>
+
+      <input
+        id="wd-firstname"
+        defaultValue="Alice"
+        placeholder="First Name"
+        className="form-control mb-2"
+        style={{ width: "300px" }}
+      />
+
+      <input
+        id="wd-lastname"
+        defaultValue="Wonderland"
+        placeholder="Last Name"
+        className="form-control mb-2"
+        style={{ width: "300px" }}
+      />
+
+      <input
+        id="wd-dob"
+        // value="2000-01-01"
+        defaultValue="mm/dd/yyyy"
+        type="date"
+        className="form-control mb-2"
+        style={{ width: "300px" }}
+      />
+
+      <input
+        id="wd-email"
+        defaultValue="alice@wonderland.com"
+        type="email"
+        className="form-control mb-2"
+        style={{ width: "300px" }}
+      />
+
+      <select
+        id="wd-role"
+        className="form-select mb-2"
+        style={{ width: "300px" }}
+      >
+        <option value="USER" selected>
+          User
+        </option>
         <option value="ADMIN">Admin</option>
         <option value="FACULTY">Faculty</option>
         <option value="STUDENT">Student</option>
       </select>
-      <br />
-      <Link to="/Kanbas/Account/Signin">Sign out</Link>
+
+      <Link
+        to="/Kanbas/Account/Signin"
+        className="btn btn-danger"
+        style={{ width: "300px" }}
+      >
+        Sign out
+      </Link>
     </div>
   );
 }
