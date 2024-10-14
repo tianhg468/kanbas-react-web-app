@@ -4,7 +4,7 @@ export default function TOC() {
   const { pathname } = useLocation();
 
   return (
-    <ul className="nav nav-pills">
+    <ul className="nav nav-pills" id="wd-toc">
       <li className="nav-item">
         <a id="wd-a" href="#/Labs" className="nav-link">
           Labs
@@ -47,6 +47,7 @@ export default function TOC() {
           id="wd-github"
           href="https://github.com/tianhg468/kanbas-react-web-app/"
           className="nav-link"
+          target="_blank"
         >
           My Github
         </a>

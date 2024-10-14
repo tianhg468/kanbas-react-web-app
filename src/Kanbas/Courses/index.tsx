@@ -1,4 +1,10 @@
-import { useParams, Navigate, Route, Routes } from "react-router-dom";
+import {
+  useParams,
+  Navigate,
+  Route,
+  Routes,
+  useSearchParams,
+} from "react-router-dom";
 import CoursesNavigation from "./Navigation";
 import Modules from "./Modules";
 import Home from "./Home";
@@ -8,37 +14,24 @@ import { FaAlignJustify } from "react-icons/fa";
 import PeopleTable from "./People/Table";
 import { useLocation } from "react-router";
 import { IoIosArrowForward } from "react-icons/io";
+import { courses } from "../Database";
 
 export default function Courses() {
   const { pathname } = useLocation();
-  const parts = pathname.split("/").filter(Boolean);
-  var lastWord = "";
+  const { cid } = useParams();
+  const course = courses.find((course) => course._id === cid);
 
-  if (parts[parts.length - 2] == "Assignments") {
-    lastWord = parts[parts.length - 2] + " > " + parts[parts.length - 1];
-  } else {
-    lastWord = parts[parts.length - 1];
-  }
-
-  const { cid } = useParams<{ cid: string }>();
-  if (!cid) {
-    return <div>No Course ID found!</div>;
-  }
   return (
     <div id="wd-courses">
       <h2 className="text-danger">
         <FaAlignJustify className="me-4 fs-4 mb-1" />
-        Course {cid}
-        <span className="text-dark">
-          <IoIosArrowForward />
-          {lastWord}
-        </span>
+        {course && course.name} &gt; {pathname.split("/")[4]}
       </h2>
 
       <hr />
       <div className="d-flex">
         <div className="d-none d-md-block me-5">
-          <CoursesNavigation cid={cid} />
+          <CoursesNavigation />
         </div>
         <div className="flex-fill me-3">
           <Routes>

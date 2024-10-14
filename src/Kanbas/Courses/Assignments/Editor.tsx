@@ -1,11 +1,12 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { LuCalendarDays } from "react-icons/lu";
 import { RxCross2 } from "react-icons/rx";
 import { FaCalendarAlt } from "react-icons/fa";
 import React, { useRef } from "react";
+import { assignments } from "../../Database";
 
 export default function AssignmentEditor() {
-  const { aid } = useParams<{ aid: string }>();
+  const { aid, cid } = useParams();
   const dateInputRef1 = useRef<HTMLInputElement>(null);
   const handleIconClick1 = () => {
     if (dateInputRef1.current) {
@@ -24,6 +25,12 @@ export default function AssignmentEditor() {
       dateInputRef3.current.showPicker(); // Opens the date picker in supported browsers
     }
   };
+  const hw = assignments.find((assignment) => assignment._id === aid);
+  const navigate = useNavigate();
+  const handleClick = () => {
+    navigate(`/Kanbas/Courses/${cid}/Assignments`);
+  };
+
   return (
     <div>
       <div id="wd-assignments-edior">
@@ -38,7 +45,7 @@ export default function AssignmentEditor() {
                 type="text"
                 className="form-control"
                 id="wd-name"
-                defaultValue={aid}
+                defaultValue={hw && hw.title}
               />
             </div>
             <div className="mb-4">
@@ -321,10 +328,18 @@ export default function AssignmentEditor() {
               </div>
             </div>
           </div>
-          <button type="submit" className="btn btn-danger float-end">
+          <button
+            type="submit"
+            className="btn btn-danger float-end"
+            onClick={handleClick}
+          >
             Save
           </button>
-          <button type="submit" className="btn btn-secondary float-end me-2">
+          <button
+            type="submit"
+            className="btn btn-secondary float-end me-2"
+            onClick={handleClick}
+          >
             Cancel
           </button>
         </form>
