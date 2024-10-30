@@ -5,17 +5,12 @@ export default function Signup() {
   return (
     <div id="wd-signup-screen">
       <h1>Sign up</h1>
-      <input
-        placeholder="username"
-        className="form-control mb-2"
-        style={{ width: "300px" }}
-      />
+      <input placeholder="username" className="form-control mb-2" />
 
       <input
         placeholder="password"
         type="password"
         className="form-control mb-2"
-        style={{ width: "300px" }}
       />
 
       {/* <input
@@ -24,11 +19,7 @@ export default function Signup() {
         className="form-control mb-2"
       /> */}
 
-      <Link
-        to="/Kanbas/Account/Profile"
-        className="btn btn-primary mb-2"
-        style={{ width: "300px" }}
-      >
+      <Link to="/Kanbas/Account/Profile" className="btn btn-primary mb-2 w-100">
         Sign up
       </Link>
       <br />

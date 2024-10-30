@@ -3,31 +3,69 @@ import { LuCalendarDays } from "react-icons/lu";
 import { RxCross2 } from "react-icons/rx";
 import { FaCalendarAlt } from "react-icons/fa";
 import React, { useRef } from "react";
-import { assignments } from "../../Database";
+import { useState, useEffect } from "react";
+
+import { addAssignment, deleteAssignment, updateAssignment } from "./reducer";
+import { useSelector, useDispatch } from "react-redux";
 
 export default function AssignmentEditor() {
   const { aid, cid } = useParams();
+  const dispatch = useDispatch();
+  const [assignment, setAssignment] = useState({
+    _id: aid,
+    title: "New Assignment",
+    description: "New Assignment Description",
+    course: cid,
+    points: 100,
+    dueDate: "yyyy-mm-dd",
+    availableFrom: "yyyy-mm-dd",
+    availableUntil: "yyyy-mm-dd",
+  });
+
   const dateInputRef1 = useRef<HTMLInputElement>(null);
   const handleIconClick1 = () => {
     if (dateInputRef1.current) {
-      dateInputRef1.current.showPicker(); // Opens the date picker in supported browsers
+      dateInputRef1.current.showPicker();
     }
   };
   const dateInputRef2 = useRef<HTMLInputElement>(null);
   const handleIconClick2 = () => {
     if (dateInputRef2.current) {
-      dateInputRef2.current.showPicker(); // Opens the date picker in supported browsers
+      dateInputRef2.current.showPicker();
     }
   };
   const dateInputRef3 = useRef<HTMLInputElement>(null);
   const handleIconClick3 = () => {
     if (dateInputRef3.current) {
-      dateInputRef3.current.showPicker(); // Opens the date picker in supported browsers
+      dateInputRef3.current.showPicker();
     }
   };
-  const hw = assignments.find((assignment) => assignment._id === aid);
+  const { assignments } = useSelector((state: any) => state.assignmentsReducer);
   const navigate = useNavigate();
-  const handleClick = () => {
+  const [isNewAssignment, setIsNewAssignment] = useState(true);
+
+  useEffect(() => {
+    if (aid) {
+      const existingAssignment = assignments.find((a: any) => a._id === aid);
+      if (existingAssignment) {
+        setAssignment(existingAssignment);
+        setIsNewAssignment(false);
+      }
+    }
+  }, [aid, assignments]);
+
+  const handleSave = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isNewAssignment) {
+      dispatch(addAssignment(assignment));
+    } else {
+      dispatch(updateAssignment(assignment));
+    }
+    navigate(`/Kanbas/Courses/${cid}/Assignments`);
+  };
+
+  const handleCancel = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
     navigate(`/Kanbas/Courses/${cid}/Assignments`);
   };
 
@@ -45,7 +83,10 @@ export default function AssignmentEditor() {
                 type="text"
                 className="form-control"
                 id="wd-name"
-                defaultValue={hw && hw.title}
+                value={assignment.title}
+                onChange={(e) =>
+                  setAssignment({ ...assignment, title: e.target.value })
+                }
               />
             </div>
             <div className="mb-4">
@@ -53,10 +94,10 @@ export default function AssignmentEditor() {
                 id="wd-description"
                 className="form-control"
                 rows={10}
-                defaultValue="The assignment is available online. Submit a link to the landing page of your Web application running
-                on Netlify. The landing page should include the following: Your full name and section; Links to each of the lab
-                assignments; Link to the Kanbas application; Links to all relevant source code repositories. The Kanbas
-                application should include a link to navigate back to the landing page."
+                value={assignment.description}
+                onChange={(e) =>
+                  setAssignment({ ...assignment, description: e.target.value })
+                }
               ></textarea>
             </div>
 
@@ -72,7 +113,23 @@ export default function AssignmentEditor() {
                   type="text"
                   className="form-control"
                   id="wd-points"
-                  defaultValue="100"
+                  value={
+                    assignment.points !== undefined
+                      ? assignment.points.toString()
+                      : "100"
+                  }
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    const numberValue = Number(value);
+                    if (!isNaN(numberValue) && numberValue >= 0) {
+                      setAssignment({
+                        ...assignment,
+                        points: numberValue,
+                      });
+                    } else {
+                      setAssignment({ ...assignment, points: 0 });
+                    }
+                  }}
                 />
               </div>
             </div>
@@ -267,9 +324,28 @@ export default function AssignmentEditor() {
                       type="date"
                       id="wd-due-date"
                       className="form-control custom-date-input"
-                      defaultValue="May 13, 2024, 11:59 PM"
+                      value={
+                        assignment.dueDate !== undefined
+                          ? assignment.dueDate.substring(0, 10)
+                          : ""
+                      }
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value) {
+                          setAssignment({
+                            ...assignment,
+                            dueDate: value,
+                          });
+                        } else {
+                          setAssignment({
+                            ...assignment,
+                            dueDate: "",
+                          });
+                        }
+                      }}
                       ref={dateInputRef1}
                     />
+
                     <span className="input-group-text bg-secondary">
                       <LuCalendarDays
                         onClick={handleIconClick1}
@@ -290,7 +366,25 @@ export default function AssignmentEditor() {
                           type="date"
                           id="wd-available-from"
                           className="form-control custom-date-input"
-                          defaultValue="May 6, 2024, 12:00 AM"
+                          value={
+                            assignment.availableFrom !== undefined
+                              ? assignment.availableFrom.substring(0, 10)
+                              : ""
+                          }
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (value) {
+                              setAssignment({
+                                ...assignment,
+                                availableFrom: value,
+                              });
+                            } else {
+                              setAssignment({
+                                ...assignment,
+                                availableFrom: "",
+                              });
+                            }
+                          }}
                           ref={dateInputRef2}
                         />
                         <span className="input-group-text bg-secondary">
@@ -313,6 +407,25 @@ export default function AssignmentEditor() {
                           type="date"
                           id="wd-available-until"
                           className="form-control custom-date-input"
+                          value={
+                            assignment.availableUntil !== undefined
+                              ? assignment.availableUntil.substring(0, 10)
+                              : ""
+                          }
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (value) {
+                              setAssignment({
+                                ...assignment,
+                                availableUntil: value,
+                              });
+                            } else {
+                              setAssignment({
+                                ...assignment,
+                                availableUntil: "",
+                              });
+                            }
+                          }}
                           ref={dateInputRef3}
                         />
                         <span className="input-group-text bg-secondary">
@@ -331,14 +444,14 @@ export default function AssignmentEditor() {
           <button
             type="submit"
             className="btn btn-danger float-end"
-            onClick={handleClick}
+            onClick={handleSave}
           >
             Save
           </button>
           <button
             type="submit"
             className="btn btn-secondary float-end me-2"
-            onClick={handleClick}
+            onClick={handleCancel}
           >
             Cancel
           </button>

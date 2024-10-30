@@ -16,7 +16,7 @@ import { useLocation } from "react-router";
 import { IoIosArrowForward } from "react-icons/io";
 import { courses } from "../Database";
 
-export default function Courses() {
+export default function Courses({ courses }: { courses: any[] }) {
   const { pathname } = useLocation();
   const { cid } = useParams();
   const course = courses.find((course) => course._id === cid);
