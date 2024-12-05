@@ -9,7 +9,6 @@ import { useEffect, useState } from "react";
 import store from "./store";
 import { Provider, useSelector } from "react-redux";
 import ProtectedRoute from "./Account/ProtectedRoute";
-import * as client from "./Courses/client";
 import * as userClient from "./Account/client";
 import * as courseClient from "./Courses/client";
 
@@ -28,7 +27,7 @@ export default function Kanbas() {
   };
   const fetchAllCourses = async () => {
     try {
-      const fetchedAllCourses = await client.fetchAllCourses();
+      const fetchedAllCourses = await userClient.findAllCourses();
       setAllCourses(fetchedAllCourses);
     } catch (error) {
       console.error(error);

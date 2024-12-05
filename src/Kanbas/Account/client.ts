@@ -2,14 +2,41 @@ import axios from "axios" ;
 const axiosWithCredentials = axios.create({ withCredentials: true });
 export const REMOTE_SERVER = process.env.REACT_APP_REMOTE_SERVER; 
 export const USERS_API = `${ REMOTE_SERVER }/api/users` ; 
+export const COURSES_API = `${ REMOTE_SERVER }/api/courses` ; 
+
+export const createUser = async (user: any) => { 
+    const response = await axios.post( `${ USERS_API }` , user); 
+    return response.data; 
+};
 
 export const findAllUsers = async () => { 
     const response = await axiosWithCredentials.get(USERS_API); 
     return response.data; 
 };
-export const signin = async (credentials: any) => { 
-    const response = await axiosWithCredentials.post( `${ USERS_API }/signin` , credentials ); 
+
+export const findUsersByRole = async (role: string) => { 
+    const response = await axios.get( `${ USERS_API }?role=${ role }` ); 
     return response.data; 
+};
+
+export const findUsersByPartialName = async (name: string) => { 
+    const response = await axios.get( `${ USERS_API }?name=${ name }` ); 
+    return response.data; 
+};
+
+export const findUserById = async (id: string) => { 
+    const response = await axios.get( `${ USERS_API }/${ id }` ); 
+    return response.data; 
+};
+
+export const signin = async (credentials: any) => { 
+    try {
+        const response = await axiosWithCredentials.post( `${ USERS_API }/signin` , credentials ); 
+        return response.data; 
+    } catch (error: any) {
+        console.error("Sign in error:", error.response || error);
+        throw error;
+    } 
 };
 export const signup = async (user: any) => { 
     const response = await axiosWithCredentials.post( `${ USERS_API }/signup` , user); 
@@ -23,6 +50,10 @@ export const updateUser = async (user: any) => {
         console.error("Update profile error:", error.response || error);
         throw error;
     }
+};
+export const deleteUser = async (userId: string) => { 
+    const response = await axios.delete( `${ USERS_API }/${ userId }` ); 
+    return response.data; 
 };
 export const profile = async () => {
     try {
@@ -41,7 +72,7 @@ export const findMyCourses = async () => {
     return data; 
 };
 export const findAllCourses = async () => { 
-    const { data } = await axiosWithCredentials.get( `${ USERS_API }/courses` ); 
+    const { data } = await axiosWithCredentials.get( `${ COURSES_API }` ); 
     return data; 
 };
 export const createCourse = async (course: any) => { 

@@ -33,6 +33,7 @@ export default function Account() {
             <Route path="/Profile" element={<Profile />} />
             <Route path="/Signup" element={<Signup />} />
             <Route path="/Users" element={<Users />} />
+            <Route path="/Users/:uid" element={<Users />} />
           </Routes>
         </div>
       </div>
