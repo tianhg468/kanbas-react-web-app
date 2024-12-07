@@ -4,7 +4,8 @@ interface Enrollment {
     _id: string;
     user: string;
     course: string;
-    date?: string;
+    enrollmentDate: string;
+    status: 'ENROLLED' | 'DROPPED' | 'COMPLETED';
 }
 
 interface EnrollmentState {
@@ -13,9 +14,8 @@ interface EnrollmentState {
     error: string | null;
 }
 
-// Initialize with empty array instead of Database
 const initialState: EnrollmentState = {
-    enrollments: [], // Remove Database dependency
+    enrollments: [],
     loading: false,
     error: null
 };
@@ -29,17 +29,12 @@ const enrollmentSlice = createSlice({
             state.loading = false;
             state.error = null;
         },
-        addEnrollment: (state, { payload: { _id, user, course } }) => {
-            state.enrollments.push({
-                _id,
-                user,
-                course,
-                date: new Date().toISOString()
-            });
+        addEnrollment: (state, { payload }) => {
+            state.enrollments.push(payload);
         },
         removeEnrollment: (state, { payload: { user, course } }) => {
             state.enrollments = state.enrollments.filter(
-                (e) => !(e.user === user && e.course === course)
+                e => !(e.user === user && e.course === course)
             );
         },
         setError: (state, { payload }) => {
@@ -62,32 +57,3 @@ export const {
 
 export default enrollmentSlice.reducer;
 
-// import { createSlice } from "@reduxjs/toolkit";
-// import * as db from "./Database"; 
-
-// const initialState = { enrollments: db.enrollments }; 
-
-// const enrollmentSlice = createSlice({
-//   name: "enrollments",
-//   initialState,
-//   reducers: {
-//     enroll: (state, { payload: { courseId, userId } }) => {
-//       const newEnrollment = { 
-//          _id: new Date().getTime().toString(), 
-//          course: courseId, 
-//          user: userId 
-//       };
-//       state.enrollments = [...state.enrollments, newEnrollment];
-//     },
-//     unenroll: (state, { payload: { courseId, userId } }) => {
-//       state.enrollments = state.enrollments.filter(
-//         (e) => !(e.course === courseId && e.user === userId)
-//       );
-//     },
-   
-//   },
-// });
-
-// export const { enroll, unenroll } = enrollmentSlice.actions;
-// export default enrollmentSlice.reducer;
- 

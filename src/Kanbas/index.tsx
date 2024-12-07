@@ -12,10 +12,20 @@ import ProtectedRoute from "./Account/ProtectedRoute";
 import * as userClient from "./Account/client";
 import * as courseClient from "./Courses/client";
 
+interface Course {
+  _id: string;
+  name: string;
+  number: string;
+  startDate: string;
+  endDate: string;
+  description?: string;
+}
+
 export default function Kanbas() {
   const [course, setCourse] = useState<any[]>([]);
-  const [courses, setCourses] = useState<any[]>([]);
-  const [allCourses, setAllCourses] = useState<any[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [allCourses, setAllCourses] = useState<Course[]>([]);
+  const [enrolling, setEnrolling] = useState<boolean>(false);
   const { currentUser } = useSelector((state: any) => state.accountReducer);
   const fetchCourses = async () => {
     try {
@@ -28,11 +38,15 @@ export default function Kanbas() {
   const fetchAllCourses = async () => {
     try {
       const fetchedAllCourses = await userClient.findAllCourses();
-      setAllCourses(fetchedAllCourses);
+      if (Array.isArray(fetchedAllCourses)) {
+        setAllCourses(fetchedAllCourses);
+      }
     } catch (error) {
-      console.error(error);
+      console.error("Error fetching all courses:", error);
+      setAllCourses([]);
     }
   };
+
   const addNewCourse = async () => {
     const newCourse = await courseClient.createCourse(course);
     setCourses([...courses, newCourse]);

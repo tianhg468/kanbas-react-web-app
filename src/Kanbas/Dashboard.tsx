@@ -36,14 +36,13 @@ export default function Dashboard() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [showAllCourses, setShowAllCourses] = useState(false);
-  const isStudent = currentUser.role === "STUDENT";
+  const isStudent = currentUser?.role === "STUDENT";
   const [loading, setLoading] = useState(false);
   const [courses, setCourses] = useState<Course[]>([]);
   const [allCourses, setAllCourses] = useState<Course[]>([]);
   const [success, setSuccess] = useState<string>("");
   const [error, setError] = useState<string>("");
 
-  // New course state
   const [newCourse, setNewCourse] = useState<Course>({
     _id: new Date().getTime().toString(),
     name: "New Name",
@@ -55,11 +54,13 @@ export default function Dashboard() {
   });
 
   const fetchCourses = async () => {
+    if (!currentUser?._id) return;
     try {
       setLoading(true);
       if (isStudent) {
         const enrolledCourses = await userClient.findMyCourses();
-        setCourses(enrolledCourses);
+        console.log("Enrolled courses:", enrolledCourses);
+        setCourses(Array.isArray(enrolledCourses) ? enrolledCourses : []);
       } else {
         const allAvailableCourses = await userClient.findAllCourses();
         setCourses(allAvailableCourses);
@@ -67,12 +68,14 @@ export default function Dashboard() {
       }
     } catch (error) {
       console.error("Error fetching courses:", error);
+      setCourses([]);
     } finally {
       setLoading(false);
     }
   };
 
   const fetchAllCourses = async () => {
+    if (!currentUser?._id) return;
     try {
       setLoading(true);
       const allAvailableCourses = await userClient.findAllCourses();
@@ -140,12 +143,17 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    fetchCourses();
-    fetchAllCourses();
-  }, [currentUser.role]);
+    if (currentUser?._id) {
+      fetchCourses();
+      fetchAllCourses();
+    }
+  }, [currentUser]);
 
-  const isEnrolled = (courseId: string): boolean =>
-    courses.some((course) => course._id === courseId);
+  const isEnrolled = (courseId: string): boolean => {
+    return Array.isArray(courses)
+      ? courses.some((course) => course._id === courseId)
+      : false;
+  };
 
   const handleEnroll = async (courseId: string) => {
     try {
@@ -184,7 +192,10 @@ export default function Dashboard() {
     }
   };
 
-  const getCoursesToDisplay = () => (showAllCourses ? allCourses : courses);
+  const getCoursesToDisplay = (): Course[] => {
+    const displayCourses = showAllCourses ? allCourses : courses;
+    return Array.isArray(displayCourses) ? displayCourses : [];
+  };
 
   const renderEnrollmentButton = (courseId: string) => {
     if (!isStudent) return null;

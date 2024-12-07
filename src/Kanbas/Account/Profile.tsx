@@ -68,6 +68,48 @@ export default function Profile() {
     }
   };
 
+  // const updateProfile = async () => {
+  //   try {
+  //     setIsLoading(true);
+  //     setError("");
+  //     setSuccess("");
+
+  //     if (!profile || !currentUser?._id) {
+  //       throw new Error("No profile data available");
+  //     }
+
+  //     validateProfile(profile);
+
+  //     const profileToUpdate = {
+  //       ...profile,
+  //       _id: currentUser._id, // Make sure we're using the currentUser's ID
+  //       password: profile.password?.trim() ? profile.password : undefined,
+  //     };
+  //     console.log("Updating profile with:", profileToUpdate); //
+
+  //     const updatedProfile = await client.updateUser(profileToUpdate);
+  //     setProfile(updatedProfile);
+  //     dispatch(setCurrentUser(updatedProfile));
+  //     setSuccess("Profile updated successfully!");
+  //   } catch (err: any) {
+  //     console.error("Profile update error:", err); // Debug log
+
+  //     // Don't redirect on 401, just show the error
+  //     const errorMessage =
+  //       err.response?.data?.message ||
+  //       err.message ||
+  //       "Failed to update profile";
+
+  //     setError(errorMessage);
+
+  //     // If we get a 401 but have a currentUser, don't redirect
+  //     if (err.response?.status === 401 && !currentUser) {
+  //       navigate("/Kanbas/Account/Signin");
+  //     }
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
   const updateProfile = async () => {
     try {
       setIsLoading(true);
@@ -80,32 +122,33 @@ export default function Profile() {
 
       validateProfile(profile);
 
+      // Ensure we're sending all required data by merging with currentUser
       const profileToUpdate = {
-        ...profile,
-        _id: currentUser._id, // Make sure we're using the currentUser's ID
+        ...currentUser, // Start with all current user data
+        ...profile, // Override with updated profile data
+        _id: currentUser._id, // Ensure ID is correct
         password: profile.password?.trim() ? profile.password : undefined,
       };
-      console.log("Updating profile with:", profileToUpdate); //
+
+      console.log("Updating profile with:", profileToUpdate);
 
       const updatedProfile = await client.updateUser(profileToUpdate);
+
+      // Update both local state and Redux store
       setProfile(updatedProfile);
       dispatch(setCurrentUser(updatedProfile));
+
+      // Force a profile refresh to ensure sync
+      await fetchProfile();
+
       setSuccess("Profile updated successfully!");
     } catch (err: any) {
-      console.error("Profile update error:", err); // Debug log
-
-      // Don't redirect on 401, just show the error
+      console.error("Profile update error:", err);
       const errorMessage =
         err.response?.data?.message ||
         err.message ||
         "Failed to update profile";
-
       setError(errorMessage);
-
-      // If we get a 401 but have a currentUser, don't redirect
-      if (err.response?.status === 401 && !currentUser) {
-        navigate("/Kanbas/Account/Signin");
-      }
     } finally {
       setIsLoading(false);
     }

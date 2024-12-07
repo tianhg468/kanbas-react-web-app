@@ -14,12 +14,20 @@ import { FaAlignJustify } from "react-icons/fa";
 import PeopleTable from "./People/Table";
 import { useLocation } from "react-router";
 import { IoIosArrowForward } from "react-icons/io";
-import { courses } from "../Database";
+import People from "./People/People";
 
 export default function Courses({ courses }: { courses: any[] }) {
   const { pathname } = useLocation();
   const { cid } = useParams();
-  const course = courses.find((course) => course._id === cid);
+
+  const filteredCourses = courses.filter((course) => course !== null);
+  const course = Array.isArray(filteredCourses)
+    ? filteredCourses.find((course) => course._id === cid)
+    : null;
+
+  if (!course && !cid) {
+    return <div>Please select a course to view modules.</div>;
+  }
 
   return (
     <div id="wd-courses">
@@ -44,7 +52,7 @@ export default function Courses({ courses }: { courses: any[] }) {
             <Route path="Assignments/:aid" element={<AssignmentEditor />} />
             <Route path="Quizzes" element={<h2>Quizzes</h2>} />
             <Route path="Grades" element={<h2>Grades</h2>} />
-            <Route path="People" element={<PeopleTable />} />
+            <Route path="People" element={<People />} />
           </Routes>
         </div>
       </div>

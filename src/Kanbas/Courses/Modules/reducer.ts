@@ -11,10 +11,10 @@ const modulesSlice = createSlice({
         },
         addModule: (state, { payload: module }) => { 
             const newModule: any = { 
-                _id: new Date().getTime().toString(), 
                 lessons: [], 
                 name: module.name, 
-                course: module.course, };
+                course: module.course,
+                _id: module._id };
             state.modules = [...state.modules, newModule] as any; 
         }, 
          deleteModule: (state, { payload: moduleId }) => { 

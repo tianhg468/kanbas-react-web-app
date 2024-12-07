@@ -21,27 +21,145 @@ export default function Modules() {
   const [moduleName, setModuleName] = useState("");
   const { modules } = useSelector((state: any) => state.modulesReducer);
   const dispatch = useDispatch();
+
   const fetchModules = async () => {
     const modules = await coursesClient.findModulesForCourse(cid as string);
     dispatch(setModules(modules));
   };
+
+  // const createModuleForCourse = async () => {
+  //   if (!cid) return;
+  //   const newModule = { name: moduleName, course: cid };
+  //   const module = await coursesClient.createModuleForCourse(cid, newModule);
+  //   dispatch(addModule(module));
+  // };
+  // const createModuleForCourse = async () => {
+  //   try {
+  //     if (!cid || !moduleName.trim()) return;
+
+  //     const newModule = {
+  //       name: moduleName,
+  //       course: cid,
+  //       description: "New module",
+  //     };
+
+  //     const createdModule = await coursesClient.createModuleForCourse(
+  //       cid,
+  //       newModule
+  //     );
+
+  //     if (createdModule && createdModule._id) {
+  //       dispatch(addModule(createdModule));
+  //       setModuleName("");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error creating module:", error);
+  //   }
+  // };
+  const generateRandomId = () => {
+    const randomNumbers = Math.floor(Math.random() * 1000)
+      .toString()
+      .padStart(3, "0");
+    return `M${randomNumbers}`;
+  };
   const createModuleForCourse = async () => {
-    if (!cid) return;
-    const newModule = { name: moduleName, course: cid };
-    const module = await coursesClient.createModuleForCourse(cid, newModule);
-    dispatch(addModule(module));
+    try {
+      if (!cid || !moduleName.trim()) return;
+
+      const newModuleId = generateRandomId();
+      console.log("new id: ", newModuleId);
+
+      const newModule = {
+        _id: newModuleId,
+        name: moduleName,
+        course: cid,
+        description: "New module",
+      };
+
+      const createdModule = await coursesClient.createModuleForCourse(
+        cid,
+        newModule
+      );
+
+      if (createdModule) {
+        dispatch(addModule(createdModule));
+        setModuleName("");
+      }
+    } catch (error) {
+      console.error("Error creating module:", error);
+    }
   };
+
   const removeModule = async (moduleId: string) => {
-    await modulesClient.deleteModule(moduleId);
-    dispatch(deleteModule(moduleId));
+    try {
+      await modulesClient.deleteModule(moduleId);
+      dispatch(deleteModule(moduleId));
+    } catch (error) {
+      console.error("Error removing module:", error);
+    }
   };
+
   const saveModule = async (module: any) => {
-    await modulesClient.updateModule(module);
-    dispatch(updateModule(module));
+    try {
+      console.log("Saving module:", module);
+
+      const moduleId = module?._id;
+      if (!moduleId) {
+        throw new Error("Module ID is missing from module object");
+      }
+
+      const moduleData = {
+        _id: moduleId,
+        name: module.name,
+        course: module.course || cid,
+      };
+
+      console.log("Module data being sent:", moduleData);
+
+      const updatedModule = await modulesClient.updateModule(
+        moduleId,
+        moduleData
+      );
+
+      console.log("Server response:", updatedModule); // Debug log
+
+      dispatch(
+        updateModule({
+          ...module,
+          ...updatedModule,
+          editing: false,
+        })
+      );
+    } catch (error) {
+      console.error("Error saving module:", error);
+      await fetchModules();
+    }
   };
+  const handleEditClick = (module: any) => {
+    console.log("Module being edited:", module); // Debug log
+    if (module && module._id) {
+      dispatch(editModule(module._id));
+    } else {
+      console.error("Invalid module or missing ID:", module);
+    }
+  };
+
   useEffect(() => {
     fetchModules();
   }, []);
+
+  const handleNameUpdate = (module: any, newName: string) => {
+    // if (!module?._id) {
+    //   console.error("Cannot update module without ID");
+    //   return;
+    // }
+    dispatch(
+      updateModule({
+        ...module,
+        name: newName,
+      })
+    );
+  };
 
   return (
     <div>
@@ -57,36 +175,45 @@ export default function Modules() {
 
       <ul id="wd-modules" className="list-group rounded-0">
         {modules.map((module: any) => (
-          <li className="wd-module list-group-item p-0 mb-5 fs-5 border-gray">
+          <li
+            key={module._id}
+            className="wd-module list-group-item p-0 mb-5 fs-5 border-gray"
+          >
             <div className="wd-title p-3 ps-2 bg-secondary">
               <BsGripVertical className="me-2 fs-3" />
               {!module.editing && module.name}
               {module.editing && (
                 <input
                   className="form-control w-50 d-inline-block"
-                  onChange={(e) =>
-                    dispatch(updateModule({ ...module, name: e.target.value }))
-                  }
+                  value={module.name || ""}
+                  onChange={(e) => handleNameUpdate(module, e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
-                      saveModule({ ...module, editing: false });
+                      const currentModule = modules.find(
+                        (m: any) => m._id === module._id
+                      );
+                      if (currentModule) {
+                        saveModule(currentModule);
+                      }
                     }
                   }}
-                  defaultValue={module.name}
                 />
               )}
               <FacultyRoute>
                 <ModuleControlButtons
                   moduleId={module._id}
-                  deleteModule={(moduleId) => removeModule(moduleId)}
-                  editModule={(moduleId) => dispatch(editModule(moduleId))}
+                  deleteModule={() => removeModule(module._id)}
+                  editModule={() => handleEditClick(module)}
                 />
               </FacultyRoute>
             </div>
             {module.lessons && (
               <ul className="wd-lessons list-group rounded-0">
                 {module.lessons.map((lesson: any) => (
-                  <li className="wd-lesson list-group-item p-3 ps-1">
+                  <li
+                    key={lesson._id}
+                    className="wd-lesson list-group-item p-3 ps-1"
+                  >
                     <BsGripVertical className="me-2 fs-3" />
                     {lesson.name}
                     <FacultyRoute>
