@@ -4,6 +4,7 @@ import {
   Route,
   Routes,
   useSearchParams,
+  useNavigate,
 } from "react-router-dom";
 import CoursesNavigation from "./Navigation";
 import Modules from "./Modules";
@@ -15,10 +16,16 @@ import PeopleTable from "./People/Table";
 import { useLocation } from "react-router";
 import { IoIosArrowForward } from "react-icons/io";
 import People from "./People/People";
+import Quizzes from "./Quizzes";
+import QuizDetails from "./Quizzes/Details";
+import QuizDetailsEditor from "./Quizzes/DetailsEditor";
+import QuizQuestionsEditor from "./Quizzes/QuestionsEditor";
+import QuestionTypeEditor from "./Quizzes/QuestionTypeEditor";
 
 export default function Courses({ courses }: { courses: any[] }) {
+  const navigate = useNavigate();
   const { pathname } = useLocation();
-  const { cid } = useParams();
+  const { cid, qid } = useParams();
 
   const filteredCourses = courses.filter((course) => course !== null);
   const course = Array.isArray(filteredCourses)
@@ -50,7 +57,24 @@ export default function Courses({ courses }: { courses: any[] }) {
             <Route path="Zoom" element={<h2>Zoom</h2>} />
             <Route path="Assignments" element={<Assignments />} />
             <Route path="Assignments/:aid" element={<AssignmentEditor />} />
-            <Route path="Quizzes" element={<h2>Quizzes</h2>} />
+            <Route path="Quizzes" element={<Quizzes />} />
+            <Route path="Quizzes/:qid/details" element={<QuizDetails />} />
+            <Route
+              path="Quizzes/:qid/details/edit"
+              element={<QuizDetailsEditor />}
+            />
+            <Route
+              path="Quizzes/:qid/details/questions"
+              element={<QuizQuestionsEditor />}
+            />
+            <Route
+              path="Quizzes/:qid/details/questions"
+              element={<QuizQuestionsEditor />}
+            />
+            <Route
+              path="Quizzes/:qid/question/:questionIdCounter"
+              element={<QuestionTypeEditor />}
+            />
             <Route path="Grades" element={<h2>Grades</h2>} />
             <Route path="People" element={<People />} />
           </Routes>
