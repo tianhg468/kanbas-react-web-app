@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import * as client from "./client";
 
 type Question = {
   id: number;
@@ -12,7 +13,7 @@ type Question = {
 };
 
 export default function QuestionTypeEditor() {
-  const { qid } = useParams<{ qid: string }>();
+  const { cid, qid } = useParams<{ cid: string; qid: string }>();
   const navigate = useNavigate();
   const [questionType, setQuestionType] = useState<
     "True/False" | "Multiple Choice" | "Fill in the Blank"
@@ -64,6 +65,10 @@ export default function QuestionTypeEditor() {
 
   // Handle Save button click
   const handleSaveClick = async () => {
+    if (!cid || !qid) {
+      console.error("cid or qid is undefined");
+      return;
+    }
     let correctAnswer: string | undefined = undefined;
 
     if (questionType === "True/False") {
@@ -87,7 +92,7 @@ export default function QuestionTypeEditor() {
     };
 
     try {
-      await client.createQuestion(qid, newQuestion);
+      await client.createQuestion(cid, qid, newQuestion);
       navigate(`/Kanbas/Courses/${cid}/Quizzes/${qid}`);
     } catch (error) {
       console.error("Error creating question:", error);
