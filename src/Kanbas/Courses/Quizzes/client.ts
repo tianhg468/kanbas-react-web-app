@@ -1,6 +1,5 @@
 import axios from "axios";
 import { BaseQuestion, NewQuestion } from './QuestionTypeEditor';
-import mongoose from "mongoose";
 const REMOTE_SERVER = process.env.REACT_APP_REMOTE_SERVER;
 const COURSES_API = `${REMOTE_SERVER}/api/courses`;
 
@@ -57,7 +56,7 @@ export const deleteQuiz = async (courseId: string, quizId: string) => {
 
 export const startQuizAttempt = async (courseId: string, quizId: string, userId: string) => {
   try {
-    if (!mongoose.Types.ObjectId.isValid(quizId) || !mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(userId)) {
+    if (!courseId || !quizId || !userId) {
       throw new Error("Invalid courseId, quizId, or userId");
     }
 
