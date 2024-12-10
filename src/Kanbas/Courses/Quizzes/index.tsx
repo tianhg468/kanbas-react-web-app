@@ -18,7 +18,6 @@ import {
 import { Quiz } from "./reducer";
 import FacultyRoute from "../../Account/FacultyRoute";
 import StudentRoute from "../../Account/StudentRoute";
-import mongoose from "mongoose";
 
 interface QuizAttempt {
   _id: string;
