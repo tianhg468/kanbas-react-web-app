@@ -2,7 +2,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import * as client from "./client";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import mongoose from "mongoose";
 import FacultyRoute from "../../Account/FacultyRoute";
 import StudentRoute from "../../Account/StudentRoute";
 

@@ -53,9 +53,14 @@ export default function Quizzes() {
       dispatch(setError(err.message));
     }
   };
-
+  const generateRandomId = () => {
+    const randomNumbers = Math.floor(Math.random() * 1000)
+      .toString()
+      .padStart(3, "0");
+    return `Q${randomNumbers}`;
+  };
   const createQuiz = () => {
-    const qid = new mongoose.Types.ObjectId().toString();
+    const qid = generateRandomId();
     if (!cid) return;
     navigate(`/Kanbas/Courses/${cid}/Quizzes/new/${qid}/details`);
   };
