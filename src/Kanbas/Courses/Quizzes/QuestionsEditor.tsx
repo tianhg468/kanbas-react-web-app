@@ -1,82 +1,84 @@
-import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import * as client from "./client";
+import { useEffect, useState } from "react";
+import { FaPencil } from "react-icons/fa6";
+import { FaTrash } from "react-icons/fa";
 
 export type Question = {
-  id: number;
+  _id: string;
   type: "True/False" | "Multiple Choice" | "Fill in the Blank";
   text: string;
   points: number;
   options?: string[];
   correctAnswer?: string;
-  editing: boolean;
+  editing?: boolean;
+};
+
+export type Quiz = {
+  _id: string;
+  title: string;
+  description: string;
+  points: number;
 };
 
 export default function QuizQuestionsEditor() {
   const navigate = useNavigate();
   const { cid, qid } = useParams<{ cid: string; qid: string }>();
-
   const [questions, setQuestions] = useState<Question[]>([]);
-  const [questionIdCounter, setQuestionIdCounter] = useState(1);
+  const generateMongoLikeId = () => {
+    const timestamp = ((new Date().getTime() / 1000) | 0).toString(16);
+    return (
+      timestamp +
+      "xxxxxxxxxxxxxxxx".replace(/[x]/g, () =>
+        ((Math.random() * 16) | 0).toString(16)
+      )
+    );
+  };
 
   // Function to add a new question
   const handleNewQuestion = () => {
+    const newQuestionId = generateMongoLikeId();
     setQuestions([
       ...questions,
       {
-        id: questionIdCounter,
+        _id: newQuestionId,
         type: "Multiple Choice",
         text: "New Question",
         points: 1,
         options: ["Option 1", "Option 2"],
         correctAnswer: "Option 1",
-        editing: true,
       },
     ]);
-    setQuestionIdCounter(questionIdCounter + 1);
     navigate(
-      `/Kanbas/Courses/${cid}/Quizzes/${qid}/question/${questionIdCounter}`
+      `/Kanbas/Courses/${cid}/Quizzes/${qid}/question/new/${newQuestionId}`
     );
-  };
-  const handleCreateQuestion = async (question: Question) => {
-    if (!cid || !qid) {
-      console.error("cid or qid is undefined");
-      return;
-    }
-
-    try {
-      // Create a new question in the database
-      await client.createQuestion(cid, qid, question);
-      // Optionally, update the questions state here
-    } catch (error) {
-      console.error("Error creating question:", error);
-    }
   };
 
   // Function to handle changes in question fields
-  const handleQuestionChange = (id: number, field: string, value: any) => {
+  const handleQuestionChange = (id: string, field: string, value: any) => {
     setQuestions(
-      questions.map((q) => (q.id === id ? { ...q, [field]: value } : q))
+      questions.map((q) => (q._id === id ? { ...q, [field]: value } : q))
     );
   };
 
   // Function to toggle edit mode
-  const handleEditQuestion = (id: number) => {
+  const handleEditQuestion = (id: string) => {
     setQuestions(
-      questions.map((q) => (q.id === id ? { ...q, editing: !q.editing } : q))
+      questions.map((q) => (q._id === id ? { ...q, editing: !q.editing } : q))
     );
   };
 
   // Function to save edits
   const handleSave = () => {
     console.log("Questions saved:", questions);
-    navigate(`/Kanbas/Courses/${cid}/Quizzes/${qid}`);
+    navigate(`/Kanbas/Courses/${cid}/Quizzes/${qid}/details`);
   };
 
   // Function to cancel edits
   const handleCancel = () => {
-    navigate(`/Kanbas/Courses/${cid}/Quizzes/${qid}`);
+    navigate(`/Kanbas/Courses/${cid}/Quizzes/${qid}/details`);
   };
+
   const handleSaveQuestion = async (question: Question) => {
     if (!cid || !qid) {
       console.error("cid or qid is undefined");
@@ -84,28 +86,43 @@ export default function QuizQuestionsEditor() {
     }
 
     try {
-      // Save the question to the database
       await client.saveQuestion(cid, qid, question);
-      // Optionally, update the questions state here
     } catch (error) {
       console.error("Error saving question:", error);
     }
   };
 
-  const handleDeleteQuestion = async (questionId: number) => {
+  const handleDeleteQuestion = async (questionId: string) => {
     if (!cid || !qid) {
       console.error("cid or qid is undefined");
       return;
     }
 
     try {
-      // Delete the question from the database
       await client.deleteQuestion(cid, qid, questionId);
-      // Optionally, update the questions state here
+      setQuestions(questions.filter((q) => q._id !== questionId));
     } catch (error) {
       console.error("Error deleting question:", error);
     }
   };
+
+  useEffect(() => {
+    const loadQuestions = async () => {
+      if (!cid || !qid) {
+        console.error("Course ID or Quiz ID is missing");
+        return;
+      }
+      try {
+        const data = await client.fetchQuestionsForQuiz(cid, qid);
+        console.log("questions:", data);
+        setQuestions(data);
+      } catch (error) {
+        console.error("Error fetching questions:", error);
+      }
+    };
+
+    loadQuestions();
+  }, [cid, qid]);
 
   // Calculate total points
   const totalPoints = questions.reduce((sum, q) => sum + q.points, 0);
@@ -138,83 +155,43 @@ export default function QuizQuestionsEditor() {
       </button>
 
       {/* Questions List */}
-      <ul className="list-group mb-3">
-        {questions.map((question) => (
-          <li key={question.id} className="list-group-item">
-            {question.editing ? (
-              <div>
-                <div className="mb-2">
-                  <label className="form-label fw-bold">Question Type</label>
-                  <select
-                    className="form-select"
-                    value={question.type}
-                    onChange={(e) =>
-                      handleQuestionChange(question.id, "type", e.target.value)
-                    }
-                  >
-                    <option value="True/False">True/False</option>
-                    <option value="Multiple Choice">Multiple Choice</option>
-                    <option value="Fill in the Blank">Fill in the Blank</option>
-                  </select>
+      <div className="p-4">
+        <h3>Questions</h3>
+        {questions.length === 0 ? (
+          <p>No questions available.</p>
+        ) : (
+          <ul className="list-group">
+            {questions.map((question) => (
+              <li key={question._id} className="list-group-item">
+                <div className="d-flex justify-content-between align-items-center">
+                  <div>
+                    <strong>{question.type}:</strong> {question.text} (
+                    {question.points} points)
+                  </div>
+                  <div>
+                    <button
+                      className="btn btn-sm btn-outline-primary me-2"
+                      onClick={() =>
+                        navigate(
+                          `/Kanbas/Courses/${cid}/Quizzes/${qid}/question/${question._id}`
+                        )
+                      }
+                    >
+                      <FaPencil />
+                    </button>
+                    <button
+                      className="btn btn-sm btn-outline-danger"
+                      onClick={() => handleDeleteQuestion(question._id)}
+                    >
+                      <FaTrash />
+                    </button>
+                  </div>
                 </div>
-
-                <div className="mb-2">
-                  <label className="form-label fw-bold">Question Text</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    value={question.text}
-                    onChange={(e) =>
-                      handleQuestionChange(question.id, "text", e.target.value)
-                    }
-                  />
-                </div>
-
-                <div className="mb-2">
-                  <label className="form-label fw-bold">Points</label>
-                  <input
-                    type="number"
-                    className="form-control"
-                    value={question.points}
-                    onChange={(e) =>
-                      handleQuestionChange(
-                        question.id,
-                        "points",
-                        parseInt(e.target.value)
-                      )
-                    }
-                  />
-                </div>
-
-                <button
-                  className="btn btn-sm btn-success me-2"
-                  onClick={() => handleEditQuestion(question.id)}
-                >
-                  Save
-                </button>
-                <button
-                  className="btn btn-sm btn-secondary"
-                  onClick={() => handleEditQuestion(question.id)}
-                >
-                  Cancel
-                </button>
-              </div>
-            ) : (
-              <div className="d-flex justify-content-between align-items-center">
-                <span>
-                  {question.type}: {question.text} ({question.points} points)
-                </span>
-                <button
-                  className="btn btn-sm btn-outline-primary"
-                  onClick={() => handleEditQuestion(question.id)}
-                >
-                  Edit
-                </button>
-              </div>
-            )}
-          </li>
-        ))}
-      </ul>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
 
       {/* Total Points */}
       <div className="mb-3 fw-bold">Total Points: {totalPoints}</div>

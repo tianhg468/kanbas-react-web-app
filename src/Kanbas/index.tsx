@@ -11,6 +11,7 @@ import { Provider, useSelector } from "react-redux";
 import ProtectedRoute from "./Account/ProtectedRoute";
 import * as userClient from "./Account/client";
 import * as courseClient from "./Courses/client";
+import LandingPage from "../landingPage";
 
 interface Course {
   _id: string;
@@ -83,6 +84,7 @@ export default function Kanbas() {
           <div className="flex-fill wd-main-content-offset p-3">
             <Routes>
               <Route path="/" element={<Navigate to="Account" />} />
+
               <Route path="/Account/*" element={<Account />} />
               <Route
                 path="/Dashboard"

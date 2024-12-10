@@ -17,6 +17,7 @@ import {
 } from "./reducer";
 import { Quiz } from "./reducer";
 import FacultyRoute from "../../Account/FacultyRoute";
+import StudentRoute from "../../Account/StudentRoute";
 import mongoose from "mongoose";
 
 interface QuizAttempt {
@@ -56,7 +57,7 @@ export default function Quizzes() {
   const createQuiz = () => {
     const qid = new mongoose.Types.ObjectId().toString();
     if (!cid) return;
-    navigate(`/Kanbas/Courses/${cid}/Quizzes/${qid}/details`);
+    navigate(`/Kanbas/Courses/${cid}/Quizzes/new/${qid}/details`);
   };
 
   const handlePublishToggle = async (quiz: ExtendedQuiz) => {
@@ -83,6 +84,10 @@ export default function Quizzes() {
     } catch (err: any) {
       dispatch(setError(err.message));
     }
+  };
+
+  const viewQuiz = (quiz: ExtendedQuiz) => {
+    navigate(`/Kanbas/Courses/${cid}/Quizzes/${quiz._id}/preview`);
   };
 
   useEffect(() => {
@@ -181,16 +186,13 @@ export default function Quizzes() {
                       <BsGripVertical className="me-2 text-secondary" />
                       <MdQuiz className="me-3 text-success fs-4" />
                       <div>
-                        {currentUser?.role === "FACULTY" ? (
-                          <Link
-                            to={`/Kanbas/Courses/${cid}/Quizzes/${quiz._id}/details`}
-                            className="text-decoration-none text-dark fw-bold"
-                          >
-                            {quiz.title}
-                          </Link>
-                        ) : (
-                          <span className="fw-bold">{quiz.title}</span>
-                        )}
+                        <Link
+                          to={`/Kanbas/Courses/${cid}/Quizzes/${quiz._id}/details`}
+                          className="text-decoration-none text-dark fw-bold"
+                        >
+                          {quiz.title}
+                        </Link>
+
                         <div className="text-muted">
                           <span
                             className={`badge ${
@@ -221,7 +223,7 @@ export default function Quizzes() {
                       </div>
                     </div>
 
-                    <FacultyRoute>
+                    {currentUser?.role === "FACULTY" && (
                       <div className="d-flex align-items-center gap-2">
                         <FaCheckCircle
                           className={`fs-5 ${
@@ -263,7 +265,7 @@ export default function Quizzes() {
                                     className="btn btn-link text-start text-decoration-none text-dark w-100 px-3 py-2"
                                     onClick={() => {
                                       navigate(
-                                        `/Kanbas/Courses/${cid}/Quizzes/${quiz._id}/edit`
+                                        `/Kanbas/Courses/${cid}/Quizzes/${quiz._id}/details`
                                       );
                                       setOpenMenuId(null);
                                     }}
@@ -320,7 +322,7 @@ export default function Quizzes() {
                           )}
                         </div>
                       </div>
-                    </FacultyRoute>
+                    )}
                   </div>
                 </li>
               ))}

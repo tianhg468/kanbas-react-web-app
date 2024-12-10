@@ -21,6 +21,8 @@ import QuizDetails from "./Quizzes/Details";
 import QuizDetailsEditor from "./Quizzes/DetailsEditor";
 import QuizQuestionsEditor from "./Quizzes/QuestionsEditor";
 import QuestionTypeEditor from "./Quizzes/QuestionTypeEditor";
+import DetailsEditor from "./Quizzes/DetailsEditor";
+import QuizPreview from "./Quizzes/QuizPreview";
 
 export default function Courses({ courses }: { courses: any[] }) {
   const navigate = useNavigate();
@@ -72,9 +74,18 @@ export default function Courses({ courses }: { courses: any[] }) {
               element={<QuizQuestionsEditor />}
             />
             <Route
-              path="Quizzes/:qid/question/:questionIdCounter"
+              path="Quizzes/:qid/question/:questionId"
               element={<QuestionTypeEditor />}
             />
+            <Route
+              path="Quizzes/:qid/question/:status/:questionId"
+              element={<QuestionTypeEditor />}
+            />
+            <Route
+              path="Quizzes/:status/:qid/details"
+              element={<QuizDetailsEditor />}
+            />
+            <Route path="Quizzes/:qid/preview" element={<QuizPreview />} />
             <Route path="Grades" element={<h2>Grades</h2>} />
             <Route path="People" element={<People />} />
           </Routes>

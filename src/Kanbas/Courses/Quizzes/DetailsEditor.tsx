@@ -1,20 +1,25 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
+import * as client from "./client";
 
 export default function QuizDetailsEditor() {
   const navigate = useNavigate();
-  const { cid, qid } = useParams();
+  const { cid, qid, status } = useParams();
   const [activeTab, setActiveTab] = useState("details");
+  const [isNewQuiz, setIsNewQuiz] = useState(false);
 
   const [quiz, setQuiz] = useState({
     title: "Unnamed Quiz",
     description: "",
     quizType: "Graded Quiz",
+    type: "GRADED_QUIZ",
     points: 0,
     assignmentGroup: "QUIZZES",
     shuffleAnswers: true,
     timeLimit: 20,
     allowMultipleAttempts: false,
+    multipleAttempts: false,
     showCorrectAnswers: true,
     accessCode: "",
     oneQuestionAtTime: true,
@@ -33,28 +38,139 @@ export default function QuizDetailsEditor() {
     const { id, value, type } = e.target;
 
     if (e.target instanceof HTMLInputElement && type === "checkbox") {
-      setQuiz({ ...quiz, [id]: e.target.checked });
+      const checked = e.target.checked;
+      if (id === "allowMultipleAttempts") {
+        setQuiz({
+          ...quiz,
+          allowMultipleAttempts: checked,
+          multipleAttempts: checked,
+        });
+      } else {
+        setQuiz({ ...quiz, [id]: checked });
+      }
     } else {
-      setQuiz({ ...quiz, [id]: value });
+      if (id === "quizType") {
+        const typeMap: { [key: string]: string } = {
+          "Graded Quiz": "GRADED_QUIZ",
+          "Practice Quiz": "PRACTICE_QUIZ",
+          "Graded Survey": "GRADED_SURVEY",
+          "Ungraded Survey": "UNGRADED_SURVEY",
+        };
+        setQuiz({
+          ...quiz,
+          quizType: value,
+          type: typeMap[value],
+        });
+      } else {
+        setQuiz({ ...quiz, [id]: value });
+      }
     }
   };
 
-  const handleSave = () => {
-    console.log("Quiz saved:", quiz);
-    navigate(`/Kanbas/Courses/${cid}/Quizzes/${qid}`);
+  const handleSave = async () => {
+    try {
+      if (!cid || !qid) {
+        console.error("Missing cid or qid");
+        return;
+      }
+
+      const updatedQuiz = {
+        ...quiz,
+        multipleAttempts: quiz.allowMultipleAttempts,
+        type: quiz.type,
+        lastUpdated: new Date().toISOString(),
+      };
+      if (isNewQuiz) {
+        console.log("Creating new quiz:", updatedQuiz);
+        const newQuiz = await client.createQuiz(cid, updatedQuiz);
+        console.log("Quiz created successfully with ID:", newQuiz._id);
+        navigate(`/Kanbas/Courses/${cid}/Quizzes/${newQuiz._id}/details`);
+      } else {
+        console.log("Updating existing quiz:", updatedQuiz);
+        await client.updateQuiz(cid, qid!, updatedQuiz);
+        navigate(`/Kanbas/Courses/${cid}/Quizzes/${qid}/details`);
+      }
+    } catch (error) {
+      console.error("Error saving quiz:", error);
+    }
   };
 
-  const handleSaveAndPublish = () => {
-    console.log("Quiz saved and published:", quiz);
-    navigate(`/Kanbas/Courses/${cid}/Quizzes`);
+  const handleSaveAndPublish = async () => {
+    try {
+      if (!cid || !qid) {
+        console.error("Missing cid or qid");
+        return;
+      }
+
+      const updatedQuiz = {
+        ...quiz,
+        published: true,
+        lastUpdated: new Date().toISOString(),
+      };
+
+      await client.publishQuiz(cid, qid, updatedQuiz);
+      console.log("Quiz published successfully");
+      navigate(`/Kanbas/Courses/${cid}/Quizzes/${qid}/details`);
+    } catch (error) {
+      console.error("Error publishing quiz:", error);
+    }
   };
+
   const handleCancel = () => {
-    navigate(`/Kanbas/Courses/${cid}/Quizzes`);
+    navigate(`/Kanbas/Courses/${cid}/Quizzes/${qid}/details`);
   };
   const handleTabClick = (tab: string, path: string) => {
     setActiveTab(tab);
     navigate(path);
   };
+
+  useEffect(() => {
+    const loadQuiz = async () => {
+      if (!cid) return;
+
+      try {
+        if (status !== "new") {
+          const quizData = await client.fetchQuiz(cid, qid!);
+          const typeMapReverse: { [key: string]: string } = {
+            GRADED_QUIZ: "Graded Quiz",
+            PRACTICE_QUIZ: "Practice Quiz",
+            GRADED_SURVEY: "Graded Survey",
+            UNGRADED_SURVEY: "Ungraded Survey",
+          };
+          setQuiz({
+            ...quizData,
+            quizType: typeMapReverse[quizData.type] || "Graded Quiz",
+          });
+        } else {
+          setQuiz({
+            title: "Unnamed Quiz",
+            description: "",
+            quizType: "Graded Quiz",
+            type: "GRADED_QUIZ",
+            points: 0,
+            assignmentGroup: "QUIZZES",
+            shuffleAnswers: true,
+            timeLimit: 20,
+            allowMultipleAttempts: false,
+            multipleAttempts: false,
+            showCorrectAnswers: true,
+            accessCode: "",
+            oneQuestionAtTime: true,
+            webcamRequired: false,
+            lockQuestionsAfterAnswering: false,
+            dueDate: "",
+            availableFrom: "",
+            availableUntil: "",
+          });
+          setIsNewQuiz(status === "new");
+        }
+      } catch (error) {
+        console.error("Error loading quiz:", error);
+      }
+    };
+
+    loadQuiz();
+  }, [cid, qid, status]);
 
   return (
     <div className="p-4">
@@ -186,7 +302,7 @@ export default function QuizDetailsEditor() {
             type="checkbox"
             className="form-check-input"
             id="allowMultipleAttempts"
-            checked={quiz.allowMultipleAttempts}
+            checked={quiz.multipleAttempts}
             onChange={handleInputChange}
           />
           <label className="form-check-label" htmlFor="allowMultipleAttempts">
